@@ -21,57 +21,28 @@
    ------------------------------------------------------------------------- */
 const MILESTONES = [
   {
-    value: "100M",
+    value: "200M",
     status: "unlocked",
     title: "O primeiro passo",
     description: "O começo de tudo. A prova de que a meta é real e o movimento já está em marcha.",
     image: "",
-    breaker: "O movimento começou."
-  },
-  {
-    value: "200M",
-    status: "unlocked",
-    title: "Ganhando tração",
-    description: "A operação encontra seu ritmo. Processos amadurecem e o crescimento se torna consistente.",
-    image: "",
-    breaker: "Ritmo define resultado."
-  },
-  {
-    value: "300M",
-    status: "unlocked",
-    title: "Consolidação",
-    description: "Base sólida construída. Cada área entende seu papel na jornada coletiva rumo ao bilhão.",
-    image: "",
-    breaker: "O crescimento já é realidade."
+    breakerBefore: "O movimento começou."
   },
   {
     value: "400M",
     status: "locked",
-    title: "Aceleração",
-    description: "O próximo salto. Escala e eficiência caminham juntas para abrir novas frentes.",
-    image: ""
-  },
-  {
-    value: "500M",
-    status: "locked",
-    title: "Metade do caminho",
-    description: "Meio bilhão. O ponto de virada que transforma ambição em inevitabilidade.",
+    title: "Ganhando tração",
+    description: "A operação encontra seu ritmo. Processos amadurecem e o crescimento se torna consistente.",
     image: "",
-    breaker: "O próximo nível exige mais."
+    breakerBefore: "Cada avanço carrega o esforço coletivo."
   },
   {
     value: "600M",
     status: "locked",
     title: "Expansão",
     description: "Novos mercados, novas possibilidades. O alcance da empresa atinge outro patamar.",
-    image: ""
-  },
-  {
-    value: "700M",
-    status: "locked",
-    title: "Maturidade",
-    description: "Crescimento sustentável e previsível. A máquina opera em sua melhor forma.",
-    image: ""
+    image: "",
+    breakerBefore: "O resultado aparece porque o trabalho é constante."
   },
   {
     value: "800M",
@@ -79,7 +50,7 @@ const MILESTONES = [
     title: "Reta de elite",
     description: "Pouquíssimas empresas chegam até aqui. Estamos entre as grandes.",
     image: "",
-    breaker: "Aqui, poucos chegam."
+    breakerBefore: "O que estamos construindo já é grande."
   },
   {
     value: "900M",
@@ -87,16 +58,21 @@ const MILESTONES = [
     title: "À beira do bilhão",
     description: "O último degrau antes do topo. A conquista histórica está ao alcance das mãos.",
     image: "",
-    breaker: "Não é sobre bater a meta…"
-  },
-  {
-    value: "1 BI",
-    status: "locked",
-    title: "Rumo ao Bi — alcançado",
-    description: "Um bilhão em vendas. A maior conquista coletiva da história do Grupo FAJ.",
-    image: ""
+    breakerBefore: "Esse caminho só existe porque estamos juntos."
   }
 ];
+
+/* -------------------------------------------------------------------------
+   TRAVA DA PÁGINA — EDITE AQUI
+   -------------------------------------------------------------------------
+   Mostra a jornada só até este marco (inclusive). Tudo depois dele — demais
+   marcos, a seção do 1 bilhão, a chamada final, os sorteios e o encerramento —
+   fica oculto até você liberar.
+   Para liberar mais conforme as metas forem batidas, troque o valor:
+     "400M" → "600M" → "800M" → "900M"
+   Para liberar a página inteira, use: null
+   ------------------------------------------------------------------------- */
+const GATE_VALUE = null;
 
 /* -------------------------------------------------------------------------
    FRASES DA ABERTURA — EDITE AQUI
@@ -167,11 +143,28 @@ const lockSVG = `
 function renderMilestones() {
   const frag = document.createDocumentFragment();
 
+  // trava: índice do último marco visível (o portão). -1 = libera tudo.
+  const gateIndex = GATE_VALUE
+    ? MILESTONES.findIndex((m) => m.value === GATE_VALUE)
+    : -1;
+  const lastVisible = gateIndex >= 0 ? gateIndex : MILESTONES.length - 1;
+  // próxima meta bloqueada (recebe o aviso "Próxima meta bloqueada")
+  const firstLockedIndex = MILESTONES.findIndex((m) => m.status === "locked");
+
   MILESTONES.forEach((m, i) => {
+    if (i > lastVisible) return;                 // travado: não renderiza além do portão
     const unlocked = m.status === "unlocked";
     const isCurrent = i === lastUnlockedIndex;
     const side = i % 2 === 0 ? "right" : "left";       // alterna lados
     const weave = i % 2 === 0 ? 30 : -30;              // sinuosidade da trilha
+
+    // frase-respiro exibida ANTES deste marco (se definida)
+    if (m.breakerBefore) {
+      const breakerB = document.createElement("div");
+      breakerB.className = "journey__breaker reveal" + (unlocked ? "" : " journey__breaker--locked");
+      breakerB.innerHTML = `<p>${m.breakerBefore}</p>`;
+      frag.appendChild(breakerB);
+    }
 
     const art = document.createElement("article");
     art.className = [
@@ -212,6 +205,18 @@ function renderMilestones() {
 
     frag.appendChild(art);
 
+    // aviso "Próxima meta bloqueada" sobreposto na próxima meta travada
+    if (i === firstLockedIndex) {
+      art.classList.add("milestone--gate");
+      const locked = document.createElement("div");
+      locked.className = "journey__locked reveal";
+      locked.innerHTML = `
+        <span class="journey__locked-icon" aria-hidden="true">${lockSVG}</span>
+        <p class="journey__locked-title">Próxima meta bloqueada</p>
+        <p class="journey__locked-text">A jornada continua a cada nova meta alcançada.<br />Seguimos construindo rumo ao bilhão.</p>`;
+      art.appendChild(locked);
+    }
+
     // frase-respiro entre as fases (se definida neste marco)
     if (m.breaker) {
       const breaker = document.createElement("div");
@@ -222,6 +227,11 @@ function renderMilestones() {
   });
 
   els.list.appendChild(frag);
+
+  // se houver portão ativo, oculta as seções abaixo do portão
+  if (gateIndex >= 0 && gateIndex < MILESTONES.length - 1) {
+    document.body.classList.add("is-gated");
+  }
 }
 
 /* ---------- Geração da trilha (Catmull-Rom → Bézier) ---------- */
@@ -240,13 +250,14 @@ function getNodePoints() {
 
   if (!nodePts.length) return [];
 
-  // âncoras de topo/base alinhadas ao primeiro/último nó (evita "swoop")
+  // âncoras de topo/base — a base termina centralizada p/ a linha de
+  // continuação (até o rodapé) encaixar de forma suave
   const first = nodePts[0];
-  const last = nodePts[nodePts.length - 1];
+  const centerX = trackRect.width / 2;
   return [
     { x: first.x, y: 0 },
     ...nodePts,
-    { x: last.x, y: trackRect.height }
+    { x: centerX, y: trackRect.height }
   ];
 }
 
@@ -485,6 +496,94 @@ function setupAchievement() {
   });
 }
 
+/* ---------- Finale: contagem até 1 bilhão + comemoração ---------- */
+function setupFinale() {
+  const section = document.getElementById("bilhao");
+  if (!section) return;
+  const numEl = document.getElementById("finaleNum");
+  const confetti = document.getElementById("finaleConfetti");
+  const story = document.getElementById("finaleStory");
+  const storyItems = story ? Array.from(story.children) : [];
+  const TARGET = 1000000000;                 // 1 bilhão
+  const COUNT_END = 0.55;                     // contagem completa em 55% do scroll
+  const STORY_START = 0.6;                    // texto começa a aparecer em 60%
+  const fmt = (v) => Math.round(v).toLocaleString("pt-BR");
+  let completed = false;
+
+  // movimento reduzido: mostra o resultado final já concluído
+  if (reduceMotion) {
+    numEl.textContent = fmt(TARGET);
+    section.classList.add("is-complete");
+    return;
+  }
+
+  const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+
+  function update() {
+    const vh = window.innerHeight;
+    const top = section.offsetTop;
+    const totalScroll = section.offsetHeight - vh;
+    if (totalScroll <= 0) return;
+
+    let p = (window.scrollY - top) / totalScroll;
+    p = Math.max(0, Math.min(1, p));
+
+    // contagem (0 -> 1 bilhão) na 1ª parte do scroll
+    const frac = Math.max(0, Math.min(1, p / COUNT_END));
+    numEl.textContent = fmt(easeOut(frac) * TARGET);
+
+    if (frac >= 1 && !completed) {
+      completed = true;
+      numEl.textContent = fmt(TARGET);
+      section.classList.add("is-complete");
+      launchConfetti(confetti);
+    } else if (p < 0.4 && completed) {
+      // rolou de volta: permite repetir a comemoração
+      completed = false;
+      section.classList.remove("is-complete");
+      if (confetti) confetti.innerHTML = "";
+    }
+
+    // texto (print 1) revelado palavra-bloco a bloco no resto do scroll
+    if (storyItems.length) {
+      const sp = Math.max(0, Math.min(1, (p - STORY_START) / (1 - STORY_START)));
+      const M = storyItems.length;
+      const band = 1.4;                        // suavidade entre os blocos
+      const front = sp * (M + band);
+      for (let k = 0; k < M; k++) {
+        const wp = Math.max(0, Math.min(1, (front - k) / band));
+        const ease = wp * wp * (3 - 2 * wp);
+        storyItems[k].style.opacity = ease.toFixed(3);
+        storyItems[k].style.transform = `translateY(${((1 - ease) * 0.7).toFixed(3)}rem)`;
+      }
+    }
+  }
+
+  window.addEventListener("scroll", rafThrottle(update), { passive: true });
+  window.addEventListener("resize", rafThrottle(update), { passive: true });
+  update();
+}
+
+function launchConfetti(container) {
+  if (!container) return;
+  container.innerHTML = "";
+  const colors = ["#ffffff", "#d8d8d8", "#a8a8a8", "#e8c66a", "#cfcfcf"];
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    const size = 5 + Math.random() * 7;
+    piece.style.setProperty("--x", (Math.random() * 100).toFixed(2) + "%");
+    piece.style.setProperty("--s", size.toFixed(1) + "px");
+    piece.style.setProperty("--c", colors[i % colors.length]);
+    piece.style.setProperty("--dur", (2.6 + Math.random() * 2.4).toFixed(2) + "s");
+    piece.style.setProperty("--delay", (Math.random() * 0.7).toFixed(2) + "s");
+    piece.style.setProperty("--rot", (Math.random() * 720 - 360).toFixed(0) + "deg");
+    frag.appendChild(piece);
+  }
+  container.appendChild(frag);
+}
+
 /* ---------- Stat: % do caminho percorrido ---------- */
 function setupStats() {
   const total = MILESTONES.length;
@@ -593,8 +692,8 @@ function setupIntro() {
   }
 
   // altura da seção define o "comprimento" do scroll horizontal
-  // ~85vh de rolagem por frase
-  els.intro.style.height = `${PHRASES.length * 85}vh`;
+  // ~108vh de rolagem por frase (mais folga p/ deslize lento + reveal no ritmo)
+  els.intro.style.height = `${PHRASES.length * 108}vh`;
 
   window.addEventListener("scroll", rafThrottle(updateIntro), { passive: true });
   window.addEventListener("resize", rafThrottle(updateIntro), { passive: true });
@@ -619,7 +718,7 @@ function updateIntro() {
      palavras vão acendendo uma a uma. Depois o trilho desliza para a próxima.
      HOLD_W = peso do tempo "parado revelando"; MOVE_W = peso da transição. ---- */
   const HOLD_W = 1.0;
-  const MOVE_W = 0.6;
+  const MOVE_W = 1.3;                                   // transição entre frases (maior = mais lento/suave)
   const HOLD_LOGO = 2.4;                                // logo desenha + conteúdo aparece
   const holdFor = (i) => (i === n - 1 ? HOLD_LOGO : HOLD_W);
 
@@ -675,7 +774,7 @@ function updateIntro() {
       else lr = 0;
 
       const K = words.length;
-      const band = 1.8;                                // largura do degradê (em palavras)
+      const band = 2.8;                                // largura do degradê (em palavras)
       const minOp = 0;                                 // palavra ainda não revelada = invisível
       const front = lr * (K + band);
       for (let k = 0; k < K; k++) {
@@ -734,14 +833,67 @@ function rafThrottle(fn) {
   };
 }
 
+/* ---------- Smooth scroll com inércia (Lenis) ---------- */
+function setupSmoothScroll() {
+  if (reduceMotion || typeof Lenis === "undefined") return;
+
+  const lenis = new Lenis({
+    lerp: 0.085,            // peso/continuidade (menor = "desliza" mais)
+    wheelMultiplier: 1,
+    smoothWheel: true,
+    syncTouch: false,       // mobile usa scroll nativo (não trava o toque)
+  });
+
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // navegação por âncora suave (ex.: "Explorar a jornada")
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    const id = a.getAttribute("href");
+    if (!id || id.length < 2) return;
+    a.addEventListener("click", (e) => {
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { offset: 0 });
+    });
+  });
+}
+
+/* ---------- Parallax sutil (camadas decorativas) ---------- */
+function setupParallax() {
+  if (reduceMotion) return;
+  const items = Array.from(document.querySelectorAll("[data-parallax]"));
+  if (!items.length) return;
+
+  const update = () => {
+    const vh = window.innerHeight;
+    items.forEach((el) => {
+      const speed = parseFloat(el.dataset.parallax) || 0;
+      const r = el.getBoundingClientRect();
+      const center = r.top + r.height / 2;
+      const offset = (center - vh / 2) * speed;
+      el.style.setProperty("--py", `${(-offset).toFixed(1)}px`);
+    });
+  };
+
+  window.addEventListener("scroll", rafThrottle(update), { passive: true });
+  window.addEventListener("resize", rafThrottle(update), { passive: true });
+  update();
+}
+
 /* ---------- Init ---------- */
 function init() {
+  setupSmoothScroll();
   setupIntro();
   renderMilestones();
-  renderPrizes();
-  setupRaffle();
   setupStats();
+  setupFinale();
   setupReveal();
+  setupParallax();
   setupHeader();
   setupAchievement();
 

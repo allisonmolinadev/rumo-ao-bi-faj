@@ -25,6 +25,8 @@
     <div class="scroll-intro__viewport">
       <div class="scroll-intro__grain" aria-hidden="true"></div>
 
+      <img class="scroll-intro__brand" src="assets/logo-grupo-faj.png" alt="Grupo FAJ" />
+
       <!-- frases renderizadas via JS a partir do array editável em script.js -->
       <div class="scroll-intro__track" id="introTrack"></div>
 
@@ -48,7 +50,7 @@
       </p>
       <p class="intro__text reveal">
         Cada venda, cada decisão e cada entrega contribuem para esse caminho.
-        <strong>Grandes metas criam grandes empresas</strong> — e essa é a nossa.
+        Grandes metas criam grandes empresas, e essa é a nossa.
       </p>
 
       <div class="intro__stats reveal">
@@ -74,8 +76,7 @@
       <span class="section-kicker reveal">A trilha</span>
       <h2 class="journey__title reveal">Jornada de progresso</h2>
       <p class="journey__lead reveal">
-        Cada marco desbloqueado é uma conquista do coletivo. Os próximos aguardam —
-        e dependem de cada um de nós.
+        Cada marco desbloqueado é uma conquista do coletivo.
       </p>
     </div>
 
@@ -105,51 +106,100 @@
       <!-- Milestones renderizados via JS a partir do array editável em script.js -->
       <div class="journey__milestones" id="milestones"></div>
     </div>
+
+    <!-- linha de continuação (só no estado travado) — desce até o rodapé -->
+    <div class="journey__continue" aria-hidden="true"></div>
+  </section>
+
+  <!-- ====================== O BILHÃO (contagem + comemoração) ====================== -->
+  <section class="finale" id="bilhao">
+    <div class="finale__viewport">
+      <div class="finale__grain" aria-hidden="true"></div>
+      <div class="finale__glow" aria-hidden="true" data-parallax="0.08"></div>
+      <div class="finale__confetti" id="finaleConfetti" aria-hidden="true"></div>
+
+      <div class="finale__inner">
+        <div class="finale__counter">
+          <span class="finale__prefix">R$</span>
+          <span class="finale__num" id="finaleNum">0</span>
+        </div>
+        <span class="finale__label">em vendas — rumo ao bilhão</span>
+
+        <div class="finale__done" id="finaleDone">
+          <div class="finale__story" id="finaleStory">
+            <h2 class="finale__story-title">O resultado é grande.<br /><span>Mas o que construímos juntos é maior ainda.</span></h2>
+            <p class="finale__story-text">
+              Nada disso acontece por acaso. É o reflexo de consistência, trabalho e construção coletiva.
+            </p>
+            <p class="finale__story-mantra">Cada entrega, cada processo, cada detalhe. Tudo isso construiu o que estamos vendo agora.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="finale__hint" id="finaleHint">
+        <span>Role para alcançar</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v15m0 0l-6-6m6 6l6-6" /></svg>
+      </div>
+    </div>
   </section>
 
   <!-- ====================== CHAMADA FINAL ====================== -->
-  <section class="closing">
-    <div class="closing__glow" aria-hidden="true"></div>
-    <div class="closing__inner reveal">
-      <span class="section-kicker">O próximo passo</span>
-      <h2 class="closing__title">O próximo nível<br /><span>depende de todos nós.</span></h2>
-      <p class="closing__text">
-        O bilhão é resultado de uma construção coletiva. Não é a conquista de um dia —
+  <section class="closing" id="proximo">
+    <div class="closing__glow" aria-hidden="true" data-parallax="0.12"></div>
+    <div class="closing__inner">
+      <h2 class="closing__title reveal">O próximo nível depende de todos nós.</h2>
+      <p class="closing__text reveal">
+        O bilhão é resultado de uma construção coletiva. Não é a conquista de um dia,
         é a soma de cada esforço, cada área, cada pessoa.
       </p>
-      <p class="closing__mantra">Pensar maior. Agir maior. Executar melhor.</p>
+      <div class="closing__arrow reveal" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15m0 0l-6-6m6 6l6-6" /></svg>
+      </div>
+      <p class="closing__beyond reveal">É assim que crescemos.</p>
+      <p class="closing__beyond closing__beyond--accent reveal">E é assim que vamos além.</p>
     </div>
   </section>
 
   <!-- ====================== SORTEIO DE PRÊMIOS ====================== -->
   <section class="prizes" id="sorteio">
     <div class="prizes__head">
-      <span class="section-kicker reveal">Sorteio · Rumo ao Bi</span>
-      <h2 class="prizes__title reveal">Prêmios do sorteio</h2>
-      <p class="prizes__lead reveal">
-        A cada marco conquistado, novas chances. Quanto mais perto do bilhão,
-        mais perto você fica destes prêmios.
-      </p>
+      <h2 class="prizes__title reveal">Quando a meta é coletiva,<br /><span>a conquista também é.</span></h2>
+      <p class="prizes__lead reveal">Sorteio especial <strong>#RUMOAOBI</strong></p>
     </div>
 
-    <!-- Pódio: top 3 -->
-    <div class="prizes__podium" id="prizesPodium"></div>
+    <div class="draws">
+      <div class="draw-card reveal">
+        <span class="draw-card__num">01</span>
+        <span class="draw-card__name">Sorteio 1</span>
+      </div>
+      <div class="draw-card reveal">
+        <span class="draw-card__num">02</span>
+        <span class="draw-card__name">Sorteio 2</span>
+      </div>
+      <div class="draw-card reveal">
+        <span class="draw-card__num">03</span>
+        <span class="draw-card__name">Sorteio 3</span>
+      </div>
+    </div>
+  </section>
 
-    <!-- Demais prêmios -->
-    <div class="prizes__list" id="prizesList"></div>
-
-    <div class="prizes__cta reveal">
-      <button class="prizes__draw" id="drawBtn" type="button">
-        <span class="prizes__draw-label">Realizar sorteio</span>
-      </button>
-      <p class="prizes__result" id="drawResult" aria-live="polite"></p>
+  <!-- ====================== ENCERRAMENTO ====================== -->
+  <section class="signoff" id="ate-onde">
+    <div class="closing__glow" aria-hidden="true" data-parallax="0.1"></div>
+    <div class="signoff__inner">
+      <h2 class="signoff__title reveal">A pergunta agora é outra:<br /><span>até onde podemos chegar?</span></h2>
+      <div class="signoff__logos reveal">
+        <img class="signoff__logo signoff__logo--bi" src="assets/Logo Rumo ao Bi - BRANCO.png" alt="Rumo ao Bi" />
+        <span class="signoff__sep" aria-hidden="true"></span>
+        <img class="signoff__logo signoff__logo--faj" src="assets/logo-grupo-faj.png" alt="Grupo FAJ" />
+      </div>
     </div>
   </section>
 
   <!-- ====================== FOOTER ====================== -->
   <footer class="site-footer">
     <div class="site-footer__inner">
-      <img class="site-footer__logo" src="assets/Logo Rumo ao Bi - BRANCO.png" alt="Rumo ao Bi" />
       <div class="site-footer__meta">
         <span>Grupo FAJ</span>
         <span class="dot-sep">·</span>
@@ -238,7 +288,7 @@
       </p>
       <p class="hero__support">
         Cada marco é um passo. Cada passo é construído por todos nós.
-        Acompanhe a evolução da nossa caminhada — do primeiro milhão ao bilhão.
+        Acompanhe a evolução da nossa caminhada, rumo ao primeiro bilhão.
       </p>
       <a class="hero__cta" href="#jornada">
         <span>Explorar a jornada</span>
@@ -247,6 +297,7 @@
     </div>
   </template>
 
+  <script src="vendor/lenis.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
