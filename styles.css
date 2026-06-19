@@ -532,35 +532,85 @@ strong { font-weight: 600; color: var(--white); }
 .intro__stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  margin-top: 4rem;
-  background: var(--line-soft);
-  border: 1px solid var(--line-soft);
-  border-radius: 16px;
-  overflow: hidden;
+  margin-top: clamp(3.5rem, 7vw, 6rem);
+  /* ocupa ~80% da seção (sai da largura do conteúdo) */
+  width: min(80vw, 1400px);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .stat {
-  background: var(--surface);
-  padding: 2rem 1.4rem;
-  text-align: center;
+  position: relative;
+  text-align: left;
+  padding: 0 clamp(1.6rem, 4vw, 4rem);
+}
+/* mini gráfico (sparkline) por número */
+.stat__spark-wrap { margin-bottom: clamp(0.9rem, 2vw, 1.6rem); }
+.stat__spark {
+  display: block;
+  width: clamp(96px, 13vw, 180px);
+  height: auto;
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(16px);          /* sobe para a posição ao ativar */
+  transition: opacity 0.7s var(--ease), transform 0.9s var(--ease);
+}
+.stat.is-active .stat__spark { opacity: 1; transform: none; }
+.stat__spark-area {
+  fill: rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transition: opacity 1.6s var(--ease) 0.5s;
+}
+.stat__spark-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--len, 200);
+  stroke-dashoffset: var(--len, 200);
+}
+.stat.is-active .stat__spark-line {
+  animation: spark-draw 3.2s var(--ease) forwards;
+}
+@keyframes spark-draw { to { stroke-dashoffset: 0; } }
+.stat__spark-dot { fill: #fff; opacity: 0; transition: opacity 0.5s var(--ease) 2.8s; }
+.stat.is-active .stat__spark-area { opacity: 1; }
+.stat.is-active .stat__spark-dot { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .stat__spark { transform: none; opacity: 1; transition: none; }
+  .stat__spark-line { animation: none; stroke-dashoffset: 0; }
+  .stat__spark-area, .stat__spark-dot { transition: none; opacity: 1; }
+}
+/* divisor vertical fino entre as colunas */
+.stat + .stat::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 70%;
+  background: var(--line);
 }
 .stat__value {
   display: block;
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 700;
-  line-height: 1;
+  font-size: clamp(3.4rem, 8.5vw, 8rem);
+  font-weight: 800;
+  line-height: 0.95;
   color: var(--white);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
-.stat__suffix { font-size: 0.42em; font-weight: 500; margin-left: 2px; vertical-align: super; }
+.stat__suffix { font-size: 0.9em; font-weight: 800; letter-spacing: -0.03em; }
 .stat__label {
   display: block;
-  margin-top: 0.7rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
+  margin-top: clamp(0.8rem, 1.4vw, 1.2rem);
+  font-size: clamp(1rem, 1.7vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--faint);
+  color: rgba(255, 255, 255, 0.85);
 }
+.stat__label strong { font-weight: 800; color: var(--white); }
 
 /* =========================================================================
    JORNADA
@@ -772,7 +822,7 @@ strong { font-weight: 600; color: var(--white); }
   justify-content: center;
   overflow: hidden;
 }
-.milestone__media img { width: 100%; height: 100%; object-fit: cover; }
+.milestone__media img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; }
 .milestone__media-placeholder {
   font-size: 0.72rem;
   letter-spacing: 0.3em;
@@ -1037,6 +1087,8 @@ body.is-gated .journey__continue {
   position: relative; z-index: 2;
   text-align: center;
   padding: 0 clamp(1.2rem, 5vw, 3rem);
+  max-width: min(70vmin, 940px);            /* mantém o conteúdo dentro da meia-lua */
+  margin: clamp(8rem, 27vh, 19rem) auto 0;  /* centraliza entre o topo do arco e a base */
 }
 .finale__kicker {
   display: block;
@@ -1044,6 +1096,16 @@ body.is-gated .journey__continue {
   letter-spacing: 0.4em; text-transform: uppercase;
   color: var(--faint); margin-bottom: 1.6rem;
 }
+/* eyebrow "Objetivo concluído" — aparece ao atingir o bilhão */
+.finale__eyebrow {
+  display: block;
+  font-size: 0.76rem; font-weight: 600;
+  letter-spacing: 0.4em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 1.6rem;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.8s var(--ease) 0.3s, transform 0.8s var(--ease) 0.3s;
+}
+.finale.is-complete .finale__eyebrow { opacity: 1; transform: none; }
 .finale__counter {
   display: flex; align-items: baseline; justify-content: center;
   gap: clamp(0.2rem, 0.6vw, 0.4rem);
@@ -1052,11 +1114,11 @@ body.is-gated .journey__continue {
   white-space: nowrap;
 }
 .finale__prefix {
-  font-size: clamp(1.2rem, 3.4vw, 2.6rem);
+  font-size: clamp(1rem, 2.6vw, 2rem);
   font-weight: 300; color: var(--muted);
 }
 .finale__num {
-  font-size: clamp(1.9rem, 9.2vw, 8rem);
+  font-size: clamp(1.6rem, 6.4vw, 6rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   background: linear-gradient(180deg, #fff 0%, #cfcfcf 100%);
@@ -1121,7 +1183,16 @@ body.is-gated .journey__continue {
 
 /* estado: alcançou 1 bilhão */
 .finale.is-complete .finale__glow { opacity: 1; transform: translate(-50%, calc(-50% + var(--py, 0px))) scale(1); }
-.finale.is-complete .finale__num  { animation: finalePop 0.7s var(--ease); }
+.finale.is-complete .finale__num {
+  background: linear-gradient(100deg, #fff 0%, #fff 38%, #e8c66a 50%, #fff 62%, #fff 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: finalePop 0.7s var(--ease), finale-shimmer 1.9s var(--ease) 0.15s;
+}
+@keyframes finale-shimmer {
+  0%   { background-position: 140% 0; }
+  100% { background-position: -40% 0; }
+}
 .finale.is-complete .finale__label { opacity: 0; }
 .finale.is-complete .finale__done  { opacity: 1; transform: none; }
 .finale.is-complete .finale__hint  { opacity: 0; }
@@ -1131,20 +1202,67 @@ body.is-gated .journey__continue {
   100% { transform: scale(1); }
 }
 
-/* confete / partículas da comemoração */
-.finale__confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
-.confetti-piece {
-  position: absolute; top: 0; left: var(--x);
-  width: var(--s); height: calc(var(--s) * 1.6);
-  background: var(--c);
-  border-radius: 1px;
-  opacity: 0;
-  animation: confettiFall var(--dur) var(--ease) var(--delay) forwards;
+/* anel 3D girando no scroll + giro de comemoração ao atingir 1 bilhão */
+.finale__burst { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+
+/* brilho suave de fundo (intensifica na comemoração) */
+.finale__aurora-glow {
+  position: absolute; left: 50%; top: 50%;
+  width: min(92vw, 1150px); height: min(72vh, 820px);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(255,255,255,0.14), transparent 70%);
+  filter: blur(30px);
+  opacity: 0.5;
+  transition: opacity 1.2s var(--ease);
 }
-@keyframes confettiFall {
-  0%   { opacity: 0; transform: translateY(-12vh) rotate(0deg); }
-  8%   { opacity: 1; }
-  100% { opacity: 0; transform: translateY(112vh) rotate(var(--rot)); }
+.finale.is-complete .finale__aurora-glow { opacity: 1; }
+
+.finale__orbit {
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-end; justify-content: center;   /* base colada na divisória */
+}
+.finale__orbit-ring {
+  position: relative;
+  width: min(150vmin, 1600px);                 /* meia-lua grande: conteúdo cabe dentro */
+  height: calc(min(150vmin, 1600px) / 2);
+}
+/* arcos SVG: desenhados conforme a bolinha passa (via JS) */
+.finale__orbit-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.finale__orbit-arc {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 0.12;
+  stroke-linecap: round;
+  transition: stroke 0.8s var(--ease);
+}
+.finale.is-complete .finale__orbit-arc { stroke: rgba(255, 255, 255, 0.95); }
+/* trilhos giram em torno do centro da base p/ levar a bolinha pelo arco */
+.finale__orbit-track {
+  position: absolute; inset: 0;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--ang, 90deg));
+  will-change: transform;
+}
+.finale__orbit-dot {
+  position: absolute; top: -6px; left: 50%;
+  width: 12px; height: 12px; margin-left: -6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 16px 4px rgba(255, 255, 255, 0.8);
+}
+/* brilho no ponto de encontro (topo) ao chegar 1 bilhão */
+.finale__orbit-spark {
+  position: absolute; top: -22px; left: 50%;
+  width: 44px; height: 44px; margin-left: -22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.25) 35%, transparent 70%);
+  opacity: 0; transform: scale(0.3);
+}
+.finale.is-complete .finale__orbit-spark { animation: meet-spark 1.8s var(--ease) forwards; }
+@keyframes meet-spark {
+  0%   { opacity: 0; transform: scale(0.3); }
+  35%  { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 0.55; transform: scale(1); }
 }
 
 /* fallback sem movimento */
@@ -1153,6 +1271,11 @@ body.is-gated .journey__continue {
   .finale__viewport { position: static; height: auto; min-height: 80svh; }
   .finale__done { opacity: 1; transform: none; }
   .finale__story > * { opacity: 1; transform: none; }
+  .finale__aurora-glow { transition: none; opacity: 1; }
+  .finale__orbit-arc { stroke-dashoffset: 0 !important; }
+  .finale__orbit-track { transform: rotate(0deg); }      /* bolinhas no topo */
+  .finale__orbit-spark { animation: none; opacity: 0.5; transform: scale(1); }
+  .finale__eyebrow { opacity: 1; transform: none; transition: none; }
 }
 
 /* =========================================================================
@@ -1520,7 +1643,12 @@ body.is-gated .journey__continue {
   .milestone--right .milestone__card { transform: translate(22px, 36px); }
   .milestone.in-view .milestone__card { transform: none; }
 
-  .intro__stats { grid-template-columns: 1fr; }
+  .intro__stats { grid-template-columns: 1fr; width: min(86vw, 520px); row-gap: clamp(2rem, 7vw, 3rem); }
+  .stat { padding: 0; }
+  .stat + .stat::before {            /* divisor vira horizontal entre as linhas */
+    left: 50%; top: calc(clamp(2rem, 7vw, 3rem) / -2); transform: translateX(-50%);
+    width: 48px; height: 1px;
+  }
   .site-header__tag { display: none; }
   .achievement { top: auto; bottom: 1rem; }
 }

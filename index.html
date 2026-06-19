@@ -53,18 +53,18 @@
         Grandes metas criam grandes empresas, e essa é a nossa.
       </p>
 
-      <div class="intro__stats reveal">
+      <div class="intro__stats">
         <div class="stat">
-          <span class="stat__value" data-count="10">10</span>
-          <span class="stat__label">marcos na jornada</span>
+          <span class="stat__value" id="statMarcos" data-count="0">0</span>
+          <span class="stat__label"><strong>Metas</strong><br />na jornada</span>
         </div>
         <div class="stat">
-          <span class="stat__value" id="statProgress">—</span>
-          <span class="stat__label">do caminho percorrido</span>
+          <span class="stat__value" id="statProgress" data-count="0" data-suffix="%">0%</span>
+          <span class="stat__label">do <strong>caminho</strong><br />percorrido</span>
         </div>
         <div class="stat">
           <span class="stat__value">1<span class="stat__suffix">BI</span></span>
-          <span class="stat__label">o destino final</span>
+          <span class="stat__label">o <strong>destino</strong><br />final</span>
         </div>
       </div>
     </div>
@@ -116,9 +116,25 @@
     <div class="finale__viewport">
       <div class="finale__grain" aria-hidden="true"></div>
       <div class="finale__glow" aria-hidden="true" data-parallax="0.08"></div>
-      <div class="finale__confetti" id="finaleConfetti" aria-hidden="true"></div>
+
+      <!-- círculo com 2 bolinhas que sobem e se encontram no topo + brilho -->
+      <div class="finale__burst" aria-hidden="true">
+        <span class="finale__aurora-glow"></span>
+        <div class="finale__orbit">
+          <div class="finale__orbit-ring">
+            <svg class="finale__orbit-svg" viewBox="0 0 100 50" preserveAspectRatio="none">
+              <path class="finale__orbit-arc finale__orbit-arc--a" d="M0 50 A50 50 0 0 1 50 0" />
+              <path class="finale__orbit-arc finale__orbit-arc--b" d="M100 50 A50 50 0 0 0 50 0" />
+            </svg>
+            <div class="finale__orbit-track finale__orbit-track--a"><span class="finale__orbit-dot"></span></div>
+            <div class="finale__orbit-track finale__orbit-track--b"><span class="finale__orbit-dot"></span></div>
+            <span class="finale__orbit-spark"></span>
+          </div>
+        </div>
+      </div>
 
       <div class="finale__inner">
+        <span class="finale__eyebrow">Objetivo concluído</span>
         <div class="finale__counter">
           <span class="finale__prefix">R$</span>
           <span class="finale__num" id="finaleNum">0</span>

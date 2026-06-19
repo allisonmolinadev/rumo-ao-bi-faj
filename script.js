@@ -25,7 +25,7 @@ const MILESTONES = [
     status: "unlocked",
     title: "O primeiro passo",
     description: "O começo de tudo. A prova de que a meta é real e o movimento já está em marcha.",
-    image: "",
+    image: "image/lancamento-soho-square.jpeg",
     breakerBefore: "O movimento começou."
   },
   {
@@ -33,7 +33,7 @@ const MILESTONES = [
     status: "unlocked",
     title: "Ganhando tração",
     description: "A operação encontra seu ritmo. Processos amadurecem e o crescimento se torna consistente.",
-    image: "",
+    image: "image/evento-soho-business.png",
     breakerBefore: "Cada avanço carrega o esforço coletivo."
   },
   {
@@ -41,7 +41,7 @@ const MILESTONES = [
     status: "unlocked",
     title: "Expansão",
     description: "Novos mercados, novas possibilidades. O alcance da empresa atinge outro patamar.",
-    image: "",
+    image: "image/premio-ranking-intec.png",
     breakerBefore: "O resultado aparece porque o trabalho é constante."
   },
   {
@@ -49,7 +49,7 @@ const MILESTONES = [
     status: "unlocked",
     title: "Reta de elite",
     description: "Pouquíssimas empresas chegam até aqui. Estamos entre as grandes.",
-    image: "",
+    image: "image/premio.png",
     breakerBefore: "O que estamos construindo já é grande."
   },
   {
@@ -57,7 +57,7 @@ const MILESTONES = [
     status: "unlocked",
     title: "À beira do bilhão",
     description: "O último degrau antes do topo. A conquista histórica está ao alcance das mãos.",
-    image: "",
+    image: "image/equipe-grupo-faj.png",
     breakerBefore: "Esse caminho só existe porque estamos juntos."
   }
 ];
@@ -151,10 +151,16 @@ function renderMilestones() {
   // próxima meta bloqueada (recebe o aviso "Próxima meta bloqueada")
   const firstLockedIndex = MILESTONES.findIndex((m) => m.status === "locked");
 
+  const numOf = (v) => parseInt(String(v).replace(/\D/g, ""), 10) || 0;
+
   MILESTONES.forEach((m, i) => {
     if (i > lastVisible) return;                 // travado: não renderiza além do portão
     const unlocked = m.status === "unlocked";
     const isCurrent = i === lastUnlockedIndex;
+    // contagem do valor: começa no marco anterior (0 no primeiro) até o atual
+    const countTo = numOf(m.value);
+    const countFrom = i > 0 ? numOf(MILESTONES[i - 1].value) : 0;
+    const countUnit = String(m.value).replace(/[\d\s.]/g, "");
     const side = i % 2 === 0 ? "right" : "left";       // alterna lados
     const weave = i % 2 === 0 ? 30 : -30;              // sinuosidade da trilha
 
@@ -194,7 +200,7 @@ function renderMilestones() {
           <div class="milestone__body">
             <div class="milestone__value-row">
               ${lockIcon}
-              <span class="milestone__value">${m.value}</span>
+              <span class="milestone__value" data-from="${countFrom}" data-to="${countTo}" data-unit="${countUnit}">${m.value}</span>
               ${statusBadge}
             </div>
             <h3 class="milestone__title">${m.title}</h3>
@@ -334,7 +340,12 @@ function updateBigNum() {
 
   const m = MILESTONES[idx];
   els.bigNum.dataset.idx = String(idx);
-  els.bigNum.textContent = m.value;
+  // conta do marco anterior até o atual (igual aos cards)
+  const numOf = (v) => parseInt(String(v).replace(/\D/g, ""), 10) || 0;
+  const unit = String(m.value).replace(/[\d\s.]/g, "");
+  const to = numOf(m.value);
+  const from = idx > 0 ? numOf(MILESTONES[idx - 1].value) : 0;
+  countUp(els.bigNum, from, to, unit, 1900);
   if (els.bigNumWrap) {
     els.bigNumWrap.classList.toggle("is-locked", m.status !== "unlocked");
   }
@@ -501,7 +512,10 @@ function setupFinale() {
   const section = document.getElementById("bilhao");
   if (!section) return;
   const numEl = document.getElementById("finaleNum");
-  const confetti = document.getElementById("finaleConfetti");
+  const trackA = section.querySelector(".finale__orbit-track--a");
+  const trackB = section.querySelector(".finale__orbit-track--b");
+  const arcA = section.querySelector(".finale__orbit-arc--a");
+  const arcB = section.querySelector(".finale__orbit-arc--b");
   const story = document.getElementById("finaleStory");
   const storyItems = story ? Array.from(story.children) : [];
   const TARGET = 1000000000;                 // 1 bilhão
@@ -510,9 +524,17 @@ function setupFinale() {
   const fmt = (v) => Math.round(v).toLocaleString("pt-BR");
   let completed = false;
 
+  // prepara o "desenho" dos arcos (traço revelado conforme a bolinha passa)
+  const lenA = arcA ? arcA.getTotalLength() : 0;
+  const lenB = arcB ? arcB.getTotalLength() : 0;
+  if (arcA) { arcA.style.strokeDasharray = lenA; arcA.style.strokeDashoffset = lenA; }
+  if (arcB) { arcB.style.strokeDasharray = lenB; arcB.style.strokeDashoffset = lenB; }
+
   // movimento reduzido: mostra o resultado final já concluído
   if (reduceMotion) {
     numEl.textContent = fmt(TARGET);
+    if (arcA) arcA.style.strokeDashoffset = 0;
+    if (arcB) arcB.style.strokeDashoffset = 0;
     section.classList.add("is-complete");
     return;
   }
@@ -532,16 +554,24 @@ function setupFinale() {
     const frac = Math.max(0, Math.min(1, p / COUNT_END));
     numEl.textContent = fmt(easeOut(frac) * TARGET);
 
+    // o traço aparece só onde a bolinha já passou (desenha conforme sobe)
+    if (arcA) arcA.style.strokeDashoffset = (lenA * (1 - frac)).toFixed(2);
+    if (arcB) arcB.style.strokeDashoffset = (lenB * (1 - frac)).toFixed(2);
+
+    // bolinhas sobem das pontas (lados) e se encontram no topo quando chega 1 bi
+    if (!completed) {
+      if (trackA) trackA.style.setProperty("--ang", (-90 * (1 - frac)).toFixed(1) + "deg");
+      if (trackB) trackB.style.setProperty("--ang", (90 * (1 - frac)).toFixed(1) + "deg");
+    }
+
     if (frac >= 1 && !completed) {
       completed = true;
       numEl.textContent = fmt(TARGET);
-      section.classList.add("is-complete");
-      launchConfetti(confetti);
+      section.classList.add("is-complete");        // dispara a comemoração de luz (CSS)
     } else if (p < 0.4 && completed) {
-      // rolou de volta: permite repetir a comemoração
+      // rolou de volta: permite repetir a comemoração ao descer de novo
       completed = false;
       section.classList.remove("is-complete");
-      if (confetti) confetti.innerHTML = "";
     }
 
     // texto (print 1) revelado palavra-bloco a bloco no resto do scroll
@@ -564,32 +594,154 @@ function setupFinale() {
   update();
 }
 
-function launchConfetti(container) {
-  if (!container) return;
-  container.innerHTML = "";
-  const colors = ["#ffffff", "#d8d8d8", "#a8a8a8", "#e8c66a", "#cfcfcf"];
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < 80; i++) {
-    const piece = document.createElement("span");
-    piece.className = "confetti-piece";
-    const size = 5 + Math.random() * 7;
-    piece.style.setProperty("--x", (Math.random() * 100).toFixed(2) + "%");
-    piece.style.setProperty("--s", size.toFixed(1) + "px");
-    piece.style.setProperty("--c", colors[i % colors.length]);
-    piece.style.setProperty("--dur", (2.6 + Math.random() * 2.4).toFixed(2) + "s");
-    piece.style.setProperty("--delay", (Math.random() * 0.7).toFixed(2) + "s");
-    piece.style.setProperty("--rot", (Math.random() * 720 - 360).toFixed(0) + "deg");
-    frag.appendChild(piece);
-  }
-  container.appendChild(frag);
-}
-
 /* ---------- Stat: % do caminho percorrido ---------- */
 function setupStats() {
   const total = MILESTONES.length;
   const unlocked = MILESTONES.filter((m) => m.status === "unlocked").length;
   const pct = Math.round((unlocked / total) * 100);
-  if (els.statProg) els.statProg.textContent = `${pct}%`;
+
+  // alvos da contagem (animação cuida da exibição)
+  const marcosEl = document.getElementById("statMarcos");
+  if (marcosEl) marcosEl.dataset.count = String(total);
+  if (els.statProg) els.statProg.dataset.count = String(pct);
+
+  setupDashboard();
+}
+
+/* ---------- Mini dashboard: contadores + sparkline (gráfico) por número ---------- */
+function setupDashboard() {
+  const stats = document.querySelectorAll(".intro__stats .stat");
+  if (!stats.length) return;
+
+  // tendências de subida (0..1) — uma por card
+  const patterns = [
+    [0.16, 0.30, 0.24, 0.46, 0.42, 0.64, 0.80, 1],
+    [0.10, 0.22, 0.36, 0.31, 0.54, 0.70, 0.86, 1],
+    [0.20, 0.17, 0.42, 0.50, 0.62, 0.76, 0.90, 1],
+  ];
+  const W = 120, H = 44, pad = 4;
+
+  stats.forEach((stat, idx) => {
+    const vals = patterns[idx % patterns.length];
+    const n = vals.length;
+    const pts = vals.map((v, i) => [
+      (i / (n - 1)) * W,
+      H - pad - v * (H - pad * 2)
+    ]);
+    const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const area = `M0 ${H} ` + pts.map((p) => "L" + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ") + ` L${W} ${H} Z`;
+    const last = pts[n - 1];
+
+    const wrap = document.createElement("div");
+    wrap.className = "stat__spark-wrap";
+    wrap.setAttribute("aria-hidden", "true");
+    wrap.innerHTML =
+      `<svg class="stat__spark" viewBox="0 0 ${W} ${H}">` +
+      `<path class="stat__spark-area" d="${area}" />` +
+      `<path class="stat__spark-line" d="${line}" />` +
+      `<circle class="stat__spark-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2.6" />` +
+      `</svg>`;
+    stat.insertBefore(wrap, stat.firstChild);
+
+    const lineEl = wrap.querySelector(".stat__spark-line");
+    const len = lineEl.getTotalLength() || 200;
+    lineEl.style.setProperty("--len", len.toFixed(1));   // usado no keyframe
+  });
+
+  const activate = (stat) => {
+    if (stat.classList.contains("is-active")) return;
+    stat.classList.add("is-active");                      // dispara o desenho (CSS)
+    const valEl = stat.querySelector("[data-count]");
+    if (valEl) animateCount(valEl);
+  };
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    stats.forEach(activate);
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) { activate(e.target); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.4 });
+  stats.forEach((s) => io.observe(s));
+
+  // salvaguarda: ativa o que já estiver visível
+  setTimeout(() => {
+    stats.forEach((s) => {
+      if (s.getBoundingClientRect().top < window.innerHeight) activate(s);
+    });
+  }, 1400);
+}
+
+function animateCount(el) {
+  const target = parseFloat(el.dataset.count);
+  const suffix = el.dataset.suffix || "";
+  if (isNaN(target)) return;
+  if (reduceMotion) { el.textContent = target + suffix; return; }
+
+  const dur = 2200;
+  const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+  let start = null;
+  function step(ts) {
+    if (start === null) start = ts;
+    const p = Math.min(1, (ts - start) / dur);
+    el.textContent = Math.round(easeOut(p) * target) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* contagem genérica de "from" até "to" (com cancelamento se chamada de novo) */
+function countUp(el, from, to, unit, dur) {
+  unit = unit || "";
+  if (reduceMotion) { el.textContent = to + unit; return; }
+  const token = (el._ct = (el._ct || 0) + 1);
+  const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+  let start = null;
+  function step(ts) {
+    if (el._ct !== token) return;            // cancelado por uma nova contagem
+    if (start === null) start = ts;
+    const p = Math.min(1, (ts - start) / (dur || 1000));
+    el.textContent = Math.round(from + (to - from) * easeOut(p)) + unit;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- Contagem do valor de cada marco (do anterior até o atual) ---------- */
+function setupMilestoneCounts() {
+  const values = document.querySelectorAll(".milestone__value[data-to]");
+  if (!values.length) return;
+
+  const run = (el) => {
+    if (el.dataset.counted) return;
+    el.dataset.counted = "1";
+    const from = parseFloat(el.dataset.from) || 0;
+    const to = parseFloat(el.dataset.to) || 0;
+    const unit = el.dataset.unit || "";
+    if (reduceMotion) { el.textContent = to + unit; return; }
+    const dur = 2200;
+    const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+    let start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      const p = Math.min(1, (ts - start) / dur);
+      el.textContent = Math.round(from + (to - from) * easeOut(p)) + unit;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  };
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    values.forEach(run);
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } });
+  }, { threshold: 0.6 });
+  values.forEach((v) => io.observe(v));
 }
 
 /* ---------- Abertura: frases em scroll horizontal ---------- */
@@ -890,6 +1042,7 @@ function init() {
   setupSmoothScroll();
   setupIntro();
   renderMilestones();
+  setupMilestoneCounts();
   setupStats();
   setupFinale();
   setupReveal();
